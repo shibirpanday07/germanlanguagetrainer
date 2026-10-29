@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DeutschPro</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f1ec;--sf:#fff;--tx:#1d2330;--mu:#5d6676;--ac:#b3202a;--ac2:#e8b923;--ok:#1f7a4d;--bd:#d9d5cb}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--sf:#1e232c;--tx:#eceff4;--mu:#a2abbb;--ac:#ff6b73;--ac2:#e8b923;--ok:#5ad19a;--bd:#323a47}}
+:root[data-theme="dark"]{--bg:#14171d;--sf:#1e232c;--tx:#eceff4;--mu:#a2abbb;--ac:#ff6b73;--ac2:#e8b923;--ok:#5ad19a;--bd:#323a47}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,h3,button,input,textarea,select,nav{font-family:"Trebuchet MS",Verdana,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+.flag{height:8px;background:linear-gradient(#111 33%,#c8102e 33% 66%,#e8b923 66%)}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;max-width:760px;margin:0 auto}
+nav button{flex:none}
+button{background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:15px;cursor:pointer}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}button.on{border-color:var(--ac);font-weight:700}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--ac2);outline-offset:2px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;margin:10px 0}
+.de{font-weight:700;font-size:18px}.en{color:var(--mu)}.pr{color:var(--mu);font-size:13px;font-style:italic}
+.map{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.map button{padding:6px 0;font-size:13px}.map button[disabled]{opacity:.4}.map .done{background:var(--ok);color:#fff;border-color:var(--ok)}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}input,textarea,select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:16px}
+.warn{border-left:4px solid var(--ac2)}
+</style></head><body>
+<div class="flag"></div>
+<nav aria-label="Main"><button id="t-home" onclick="go('home')">Course</button><button id="t-embassy" onclick="go('embassy')">Embassy practice</button><button id="t-settings" onclick="go('settings')">Settings</button></nav>
+<main id="app"></main>
+<script>
+const STAGES=["Absolute beginner","Simple everyday German","Elementary conversation","Intermediate foundations","Advanced everyday conversation","Upper-intermediate","Advanced German","Advanced professional","Expert communication","Mastery and simulation"];
+const L={
+1:{t:"Greetings",o:"Greet people and say goodbye politely.",i:[["Guten Morgen.","Good morning.","GOO-ten MOR-gen"],["Guten Tag.","Hello / Good day.","GOO-ten TAHK"],["Guten Abend.","Good evening.","GOO-ten AH-bent"],["Hallo.","Hi.","HAH-loh"],["Auf Wiedersehen.","Goodbye.","owf VEE-der-zay-en"],["Tschüss.","Bye (informal).","chüss"],["Danke.","Thank you.","DAHN-keh"],["Bitte.","Please / You’re welcome.","BIT-teh"]]},
+2:{t:"Introducing yourself",o:"Ask someone’s name and introduce yourself.",i:[["Wie heißen Sie?","What is your name? (formal)","vee HY-sen zee"],["Ich heiße Shibir.","My name is Shibir.","ikh HY-seh Shibir"],["Wie geht es Ihnen?","How are you? (formal)","vee gayt ess EE-nen"],["Mir geht es gut, danke.","I am doing well, thank you.","meer gayt ess goot DAHN-keh"],["Freut mich.","Nice to meet you.","froyt mikh"],["Woher kommen Sie?","Where do you come from? (formal)","voh-HAIR KOM-en zee"],["Ich komme aus Nepal.","I come from Nepal.","ikh KOM-eh ows NAY-pal"],["Ich spreche ein bisschen Deutsch.","I speak a little German.","ikh SHPREKH-eh eyn BISS-khen doytsh"]]},
+3:{t:"Basics and survival phrases",o:"Say yes, no, sorry, and ask for help understanding.",i:[["Ja.","Yes.","yah"],["Nein.","No.","nyn"],["Entschuldigung.","Excuse me / Sorry.","ent-SHUL-di-gung"],["Sprechen Sie Englisch?","Do you speak English?","SHPREKH-en zee ENG-lish"],["Ich verstehe nicht.","I don’t understand.","ikh fer-SHTAY-eh nikht"],["Noch einmal, bitte.","Once more, please.","nokh EYN-mahl BIT-teh"],["Wie bitte?","Pardon?","vee BIT-teh"],["Eins, zwei, drei.","One, two, three.","eyns tsvy dry"]]}
+};
+const EMB=[["Stellen Sie sich bitte vor.","Please introduce yourself."],["Warum möchten Sie in Deutschland studieren?","Why do you want to study in Germany?"],["Warum haben Sie diese Universität gewählt?","Why did you choose this university?"],["Wie finanzieren Sie Ihr Studium?","How will you finance your studies?"],["Wo werden Sie wohnen?","Where will you live?"],["Was möchten Sie nach dem Studium machen?","What do you want to do after your studies?"]];
+let S={un:1,done:{},tr:true,spd:"normal",pitch:0.9,vol:1,voice:"",theme:"auto",prof:""};
+try{Object.assign(S,JSON.parse(localStorage.getItem("dp")||"{}"))}catch(e){}
+function save(){try{localStorage.setItem("dp",JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);let view="home",lvl=0,A=null,voices=[];
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function loadV(){voices=(speechSynthesis.getVoices()||[]).filter(v=>v.lang&&v.lang.startsWith("de"))}
+if("speechSynthesis" in window){loadV();speechSynthesis.onvoiceschanged=()=>{loadV();if(view==="settings")render()}}
+function speak(t){if(!("speechSynthesis" in window)){alert("Speech playback is not supported in this browser.");return}
+speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";u.rate={slow:.65,normal:.9,fast:1.1}[S.spd];u.pitch=+S.pitch;u.volume=+S.vol;
+const v=voices.find(x=>x.name===S.voice)||voices[0];if(v)u.voice=v;speechSynthesis.speak(u)}
+function stopS(){speechSynthesis.cancel()}
+function norm(s){return s.toLowerCase().replace(/[.,!?;:]/g,"").replace(/\s+/g," ").trim()}
+function sim(a,b){const x=norm(a).split(" "),y=norm(b).split(" ");let h=0;y.forEach(w=>{if(x.includes(w))h++});return h/Math.max(y.length,1)}
+function listen(cb,out){if(!SR){out.textContent="Speech recognition is not supported here. Use the text box instead (this will not assess your speech).";return}
+const r=new SR();r.lang="de-DE";r.interimResults=false;out.textContent="Listening…";r.onresult=e=>cb(e.results[0][0].transcript);r.onerror=e=>{out.textContent="Microphone problem ("+e.error+"). Use the text box instead."};r.start()}
+function go(v,l){view=v;if(l)lvl=l;A=null;render()}
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function applyTheme(){if(S.theme==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",S.theme)}
+function render(){applyTheme();["home","embassy","settings"].forEach(k=>$("t-"+k).className=view===k||(view==="lesson"&&k==="home")?"on":"");
+$("app").innerHTML=view==="home"?home():view==="lesson"?lesson():view==="embassy"?embassy():settings()}
+function home(){const n=Object.keys(S.done).length;let m="";for(let i=1;i<=100;i++){const d=S.done[i],lock=i>S.un;m+=`<button class="${d?"done":""}" ${lock?"disabled":""} onclick="go('lesson',${i})" aria-label="Level ${i}${d?" completed":lock?" locked":""}">${i}</button>`}
+return `<h1>DeutschPro</h1><div class="card"><b>Level ${S.un} of 100</b> · ${n} completed<div class="bar"><i style="width:${n}%"></i></div><p class="en">Your tutor speaks German with your browser’s voice. Live AI conversation needs a backend with an API key and is not part of this page.</p><button class="p" onclick="go('lesson',${Math.min(S.un,100)})">Continue learning</button></div>
+<div class="card"><h2>Progress map</h2><div class="map">${m}</div><p class="pr">Stages: ${STAGES.map((s,i)=>`${i*10+1}–${i*10+10} ${s}`).join("; ")}</p></div>`}
+function lesson(){const d=L[lvl];if(!d)return `<div class="card warn"><h2>Level ${lvl}: ${STAGES[Math.floor((lvl-1)/10)]}</h2><p>This level’s lesson content has not been written yet. Only levels 1–3 contain real lessons in this version.</p><button onclick="go('home')">Back to course</button></div>`;
+if(A)return assess();
+const items=d.i.map((x,k)=>`<div class="card"><div class="de">${x[0]}</div>${S.tr?`<div class="en">${x[1]}</div>`:""}<div class="pr">${x[2]}</div><div class="row"><button onclick="speak(L[${lvl}].i[${k}][0])">▶ Listen</button><button onclick="rep(${k})">🎤 Repeat</button></div><div id="r${k}" class="pr"></div><input id="x${k}" placeholder="Or type what you heard" onchange="chk(${k},this.value)" aria-label="Typed answer ${k+1}"></div>`).join("");
+return `<button onclick="go('home')">← Course</button><h1>Level ${lvl}: ${d.t}</h1><p><b>Goal:</b> ${d.o}</p>${items}<button class="p" onclick="startA()">Start level assessment (80% to pass)</button>`}
+function rep(k){const t=L[lvl].i[k][0],o=$("r"+k);listen(s=>{const p=Math.round(sim(s,t)*100);o.textContent=`I heard: “${s}” — match ${p}%. ${p>=80?"Good.":"Listen again and repeat."}`},o)}
+function chk(k,v){const t=L[lvl].i[k][0],o=$("r"+k),p=Math.round(sim(v,t)*100);o.textContent=`Typed match ${p}%. Correct: ${t} (typing is not speech assessed)`}
+function sh(a){return a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
+function startA(){const it=sh(L[lvl].i),q=[];
+it.slice(0,4).forEach(x=>{const o=sh([x[1],...sh(L[lvl].i.filter(y=>y!==x)).slice(0,3).map(y=>y[1])]);q.push({k:"mc",q:x[0],opts:o,a:x[1]})});
+it.slice(4,7).forEach(x=>q.push({k:"rc",q:x[1],a:x[0]}));
+q.push({k:"sp",q:"",a:it[7][0]});A={q,i:0,r:0,sp:null,au:0,log:[]};render()}
+function assess(){if(A.i>=A.q.length)return result();const q=A.q[A.i];let b="";
+if(q.k==="mc")b=`<p>What does this mean?</p><div class="de">${q.q}</div><div class="row"><button onclick="speak('${q.q.replace(/'/g,"\\'")}')">▶ Listen</button></div>${q.opts.map((o,j)=>`<div><button style="width:100%;text-align:left;margin:3px 0" onclick="ans(${j})">${o}</button></div>`).join("")}`;
+if(q.k==="rc")b=`<p>Write the German for:</p><div class="en">${q.q}</div><input id="ai" aria-label="German answer"><br><br><button class="p" onclick="ans($('ai').value)">Check</button>`;
+if(q.k==="sp")b=`<p>Speaking task: listen, then say this aloud.</p><div class="de">${q.a}</div><div class="row"><button onclick="speak('${q.a.replace(/'/g,"\\'")}')">▶ Listen</button><button class="p" onclick="spk()">🎤 Say it</button></div><div id="so" class="pr"></div>`;
+return `<h2>Assessment ${A.i+1} of ${A.q.length}</h2><div class="card">${b}</div>`}
+function ans(v){const q=A.q[A.i];let ok=q.k==="mc"?q.opts[v]===q.a:norm(v)===norm(q.a);if(ok)A.r++;A.log.push(ok?"✔ "+q.a:"✘ "+q.a);A.i++;render()}
+function spk(){const o=$("so"),q=A.q[A.i];listen(s=>{const p=sim(s,q.a);A.sp=p>=.8;A.au=1;A.log.push(`Speaking: heard “${s}” (${Math.round(p*100)}%)`);A.i++;render()},o)}
+function result(){const sc=Math.round(A.r/6*100),sOk=A.sp===true,pass=sc>=80&&sOk;
+if(pass){S.done[lvl]=1;if(S.un===lvl)S.un=Math.min(lvl+1,100);save()}
+return `<h2>${pass?"Level passed":"Not yet"}</h2><div class="card">Written score: ${A.r}/6 (${sc}%). Speaking task: ${sOk?"passed":"not passed"}.<br>Passing needs 80% written <b>and</b> a passed speaking task.<ul>${A.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul><div class="row"><button onclick="startA()">Retry</button><button onclick="go('lesson',${lvl})">Revise lesson</button><button class="p" onclick="go('home')">Course map</button></div></div>`}
+function embassy(){return `<h1>Embassy interview practice</h1><div class="card warn">This is a practice tool, not an official visa assessment or a guarantee of approval. Answer honestly and use your real details only. This page does not grade or correct your German; that would need an AI backend.</div>
+<div class="card"><h3>My applicant profile (saved on this device)</h3><textarea id="prof" rows="5" placeholder="University, course, sponsor, funding, accommodation, plans…" oninput="S.prof=this.value;save()">${esc(S.prof)}</textarea></div>
+${EMB.map((q,k)=>`<div class="card"><div class="de">${q[0]}</div>${S.tr?`<div class="en">${q[1]}</div>`:""}<div class="row"><button onclick="speak(EMB[${k}][0])">▶ Ask</button><button onclick="emb(${k})">🎤 Answer</button></div><div id="e${k}" class="pr"></div></div>`).join("")}`}
+function emb(k){const o=$("e"+k);listen(s=>{o.textContent="Your transcript: “"+s+"”. Compare it with your profile above and check that facts match."},o)}
+function settings(){return `<h1>Settings</h1><div class="card"><label>Voice (German voices found: ${voices.length})<select onchange="S.voice=this.value;save()"><option value="">Default German</option>${voices.map(v=>`<option ${v.name===S.voice?"selected":""}>${esc(v.name)}</option>`).join("")}</select></label><br><br>
+<label>Speed<select onchange="S.spd=this.value;save()">${["slow","normal","fast"].map(x=>`<option ${S.spd===x?"selected":""}>${x}</option>`).join("")}</select></label><br><br>
+<label>Pitch (lower is deeper, where supported)<input type="range" min="0.5" max="1.5" step="0.1" value="${S.pitch}" onchange="S.pitch=this.value;save()"></label><br>
+<label>Volume<input type="range" min="0" max="1" step="0.1" value="${S.vol}" onchange="S.vol=this.value;save()"></label><br>
+<label><input type="checkbox" style="width:auto" ${S.tr?"checked":""} onchange="S.tr=this.checked;save()"> Show English translations</label><br><br>
+<label>Theme<select onchange="S.theme=this.value;save();applyTheme()">${["auto","light","dark"].map(x=>`<option ${S.theme===x?"selected":""}>${x}</option>`).join("")}</select></label><br><br>
+<div class="row"><button onclick="speak('Guten Tag. Wie geht es Ihnen?')">▶ Test voice</button><button onclick="stopS()">Stop</button><button onclick="if(confirm('Reset all progress?')){S.un=1;S.done={};save();go('home')}">Reset progress</button></div></div>
+<p class="pr">Voice quality depends on your browser and device. Speech recognition works best in Chrome or Edge.</p>`}
+render();
+</script></body></html>
